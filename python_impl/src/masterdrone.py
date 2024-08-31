@@ -1,8 +1,8 @@
 from src.drone import Drone
 class MasterDrone(Drone):    
-    def Act(self):
-        print("MasterDrone Act")
-        pass
+    # def Act(self):
+    #     print("MasterDrone Act")
+    #     pass
 
     def GetPosition(self):
         print("MasterDrone GetPosition")

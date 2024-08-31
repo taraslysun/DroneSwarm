@@ -20,13 +20,17 @@ def init_field(num_clusters, num_drones, num_intermediate_drones):
     
 
 def main():
-    master = MasterDrone(0)
+    # master = MasterDrone(0)
     # msg = master.Receive()
     # print(msg)
     # master.Broadcast(msg + " master return")
-    for i in range(10):
-        msg = master.Receive()
+    cluster_head = ClusterHeadDrone(1, use_tcp=True)
+    cluster_head.Broadcast("Hello from cluster_head",'192.168.1.51')
+    for i in range(3):
+        msg = cluster_head.Receive()
         print(msg)
-        master.Broadcast(msg + " master return" + str(i))    
+        cluster_head.Broadcast(msg[0]+str(i), '192.168.1.51')    
+
+    cluster_head.socket.close()
 if __name__ == "__main__":
     main()
