@@ -20,15 +20,13 @@ def init_field(num_clusters, num_drones, num_intermediate_drones):
     
 
 def main():
-    num_clusters = 2
-    num_drones = 5
-    num_intermediate_drones = 2
-    drones = init_field(num_clusters, num_drones, num_intermediate_drones)
-    master = drones[0]
-    for i in range(100):
-        master.Receive()
-        master.Act()
-        master.Broadcast()
-    
+    master = MasterDrone(0)
+    # msg = master.Receive()
+    # print(msg)
+    # master.Broadcast(msg + " master return")
+    for i in range(10):
+        msg = master.Receive()
+        print(msg)
+        master.Broadcast(msg + " master return" + str(i))    
 if __name__ == "__main__":
     main()
