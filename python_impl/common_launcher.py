@@ -17,7 +17,7 @@ def start_common_drone(i, port):
                         port=port,
                         use_tcp=False, 
                         cluster_head=(0, '192.168.1.51', 20000),
-                        step_distance=0.4, 
+                        step_distance=0.7, 
                         target_coordinates=target, 
                         position=start_position)
     drone.Operation(demo_ip=demo_ip)

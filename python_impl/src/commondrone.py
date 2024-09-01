@@ -21,13 +21,23 @@ class CommonDrone(Drone):
         self.cluster_head_port = cluster_head[2]
         super().__init__(id, port, use_tcp, position, target_coordinates, step_distance)
 
-        # manager = Manager()
-        # self.shared_target_coordinates = manager.list(self.target_coordinates)
-        # self.shared_moving = manager.Value('b', self.moving)  # 'b' indicates a boolean value
 
-        # # Start the listener process
-        # self.listener_process = Process(target=self.ListenForCommands)
-        # self.listener_process.start()
+        manager = Manager()
+        self.shared_target_coordinates = manager.list(self.target_coordinates)
+        self.shared_moving = manager.Value('b', self.moving)
+
+        self.listener_process = Process(target=self.ListenForCommands)
+        self.listener_process.start()
+
+
+    def ListenForCommands(self):
+        """
+        Separate process that listens for incoming commands and updates the shared state.
+        """
+        while True:
+            message, addr = self.Receive()
+            if message:
+                self.ParseCommand(message)
 
 
     def ParseCommand(self, message):

@@ -36,23 +36,6 @@ class Drone:
         self.socket.bind((self.ip_addr, self.port)) 
         print(f"{'TCP' if use_tcp else 'UDP'} {self.__class__.__name__} id:{self.id} ip:{self.ip_addr}/{self.port}")
 
-        manager = Manager()
-        self.shared_target_coordinates = manager.list(self.target_coordinates)
-        self.shared_moving = manager.Value('b', self.moving)
-
-        self.listener_process = Process(target=self.ListenForCommands)
-        self.listener_process.start()
-
-
-    def ListenForCommands(self):
-        """
-        Separate process that listens for incoming commands and updates the shared state.
-        """
-        while True:
-            message, addr = self.Receive()
-            if message:
-                self.ParseCommand(message)
-
 
 
     def MoveToTarget(self):

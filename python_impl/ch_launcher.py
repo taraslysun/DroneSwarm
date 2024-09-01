@@ -14,13 +14,6 @@ ip2 = '192.168.1.53'
 def start_ch_drone(i, port):
     start_position = (i*10, 0, 0)
     target = (i*200, 10+i*10, 50)
-    drone = ClusterHead(i + 20000, 
-                        port=port,
-                        use_tcp=False,
-                        step_distance=0.7,
-                        target_coordinates=target, 
-                        position=start_position,
-                        cluster_radius=30)
     drones = []
     if i < 2:
         ip = ip1
@@ -29,8 +22,15 @@ def start_ch_drone(i, port):
     for k in range(6*i+1, 6*i+7):
         drones.append((10000+k, ip, 10000+k))
 
-    drone.common_drones = drones
-    print(drone.common_drones)
+    drone = ClusterHead(i + 20000, 
+                        port=port,
+                        use_tcp=False,
+                        step_distance=0.7,
+                        target_coordinates=target, 
+                        position=start_position,
+                        common_drones=drones,
+                        cluster_radius=40)
+    # print(drone.common_drones)
     
     drone.Operation()
 

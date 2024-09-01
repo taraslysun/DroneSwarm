@@ -20,20 +20,47 @@ class ClusterHead(Drone):
         self.common_drones = common_drones
         self.common_moving = False
         self.coordinates_sent = False  # Flag to track if coordinates have been sent
+        print('num of common drones:', len(self.common_drones))
+
+        manager = Manager()
+        self.shared_target_coordinates = manager.list(self.target_coordinates)
+        self.shared_moving = manager.Value('b', self.moving)
+
+        self.listener_process = Process(target=self.ListenForCommands)
+        self.listener_process.start()
+
+
+    def ListenForCommands(self):
+        """
+        Separate process that listens for incoming commands and updates the shared state.
+        """
+        while True:
+            message, addr = self.Receive()
+            print('message:', message)
+            if message:
+                self.ParseCommand(message)
 
 
     def MoveCommonDrones(self):
-        if not self.coordinates_sent:
-            for cd in self.common_drones:
-                rand_coords = []
-                for i in range(3):
-                    rand_coords.append(self.shared_target_coordinates[i] + random.uniform(-self.cluster_radius, self.cluster_radius))
-                self.Broadcast(json.dumps({'command': 'MOVE', 
-                                           'coordinates': {'latitude': rand_coords[0], 
-                                                           'longitude': rand_coords[1], 
-                                                           'altitude': rand_coords[2]}}),
-                               cd[1], cd[2])
-            self.coordinates_sent = True  # Set the flag to indicate that coordinates have been sent
+        # print('num of common drones: MoveCommonDrones ', len(self.common_drones))
+        # if not self.coordinates_sent:
+        #     # find the direction vector to the target
+        #     direction = [self.shared_target_coordinates[i] - self.position[i] for i in range(3)]
+        #     # print('direction:', direction)
+        # else:
+        direction = [0, 0, 0]
+        for cd in self.common_drones:
+            rand_coords = []
+            for i in range(3):
+                rand_coords.append(self.position[i] + random.uniform(-self.cluster_radius, self.cluster_radius) + direction[i])
+
+
+            self.Broadcast(json.dumps({'command': 'MOVE', 
+                                        'coordinates': {'latitude': rand_coords[0], 
+                                                        'longitude': rand_coords[1], 
+                                                        'altitude': rand_coords[2]}}),
+                            cd[1], cd[2])
+        self.coordinates_sent = True
 
     def Action(self):
         '''
@@ -42,9 +69,9 @@ class ClusterHead(Drone):
         if not self.shared_moving.value:
             time.sleep(0.1)  # Small sleep to reduce CPU usage
         else:
-            if not self.coordinates_sent:
-                self.MoveCommonDrones()
+            # if not self.coordinates_sent:
             self.MoveToTarget()
+            self.MoveCommonDrones()
 
 
     def Operation(self, num=None, demo_ip=None):
@@ -68,9 +95,10 @@ class ClusterHead(Drone):
             for i in range(3):
                 self.shared_target_coordinates[i] = coordinates[i]
             self.coordinates_sent = False  # Reset the flag when a new move command is received
+            self.MoveCommonDrones()  # Move the common drones to new random coordinates
 
 
     def BroadcastSync(self):
         sync_message = f"SYNC {self.clock}"
         for cd in self.common_drones:
-            self.Broadcast(sync_message, cd.ip_addr)
+            self.Broadcast(sync_message, cd[1], cd[2])
