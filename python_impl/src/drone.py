@@ -50,16 +50,18 @@ class Drone:
         print(f"Base action {self.id}, REDEFINE!")
         pass
 
-    def Broadcast(self, message, addr):
+    def Broadcast(self, message, addr=None, port=None):
+        if addr is None:
+            addr = self.ip_addr
+        if port is None:
+            port = self.port
         try:
             if self.is_tcp:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.connect((addr, self.port))
+                    s.connect((addr, port))
                     s.sendall(message.encode())
             else:
-                print(f"Drone {self.id} broadcasting message: {message} to {addr}")
-                self.socket.sendto(message.encode(), (addr, self.port))
-                print(f"Broadcast sent successfully")
+                self.socket.sendto(message.encode(), (addr, port))
         except Exception as e:
             print(f"Drone {self.id} failed to send message to {addr}: {e}")
             return False

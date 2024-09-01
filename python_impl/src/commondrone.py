@@ -29,21 +29,6 @@ class CommonDrone(Drone):
         else:
             self.MoveToTarget()
 
-    def Broadcast(self, message, addr=None):
-        if addr is None:
-            addr = self.cluster_head_ip
-        try:
-            if self.is_tcp:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.connect((addr, self.port))
-                    s.sendall(message.encode())
-            else:
-                self.socket.sendto(message.encode(), (addr, self.port))
-            print(f"Broadcast sent successfully")
-        except Exception as e:
-            print(f"Failed {self.id} receiver:{addr}: {e}")
-            return False
-
 
     def ParseCommand(self, message):
         message = json.loads(message)
