@@ -24,25 +24,26 @@ class Drone:
         self.position = np.array(position).astype(float)
         self.target_coordinates = np.array(target_coordinates).astype(float)
         self.step_distance = step_distance
-        self.moving = False
+        self.moving = False if np.all(self.position == self.target_coordinates) else True
 
 
         if use_tcp:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         else:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
-        self.socket.bind(("", self.port)) 
+        self.socket.bind((self.ip_addr, self.port)) 
         print(f"{'TCP' if use_tcp else 'UDP'} {self.__class__.__name__} id:{self.id} ip:{self.ip_addr}/{self.port}")
 
 
-    def Operation(self, num=None):
+    def Operation(self):
         """
         Main operation loop of the drone
         """
         print(f"Base operation {self.id}, REDEFINE!")
-            # broadcast position to UNITY host for visualization
+        pass
 
     def Action(self):
         """
@@ -52,13 +53,13 @@ class Drone:
         pass
 
 
-    
+
     def ParseCommand(self, message):
-        message = json.loads(message)
-        if message['command'] == 'MOVE':
-            self.moving = True
-            coordinates = message['coordinates']
-            self.target_coordinates = np.array([coordinates['latitude'], coordinates['longitude'], coordinates['altitude']]).astype(float)
+        """
+        Parse a received command message
+        """
+        print(f"Base parse command {self.id}, REDEFINE!")
+        pass
 
 
 
@@ -77,6 +78,8 @@ class Drone:
         except Exception as e:
             print(f"Drone {self.id} failed to send message to {addr}: {e}")
             return False
+
+
 
     def Receive(self):
         try:
@@ -99,13 +102,19 @@ class Drone:
             print(f"Drone {self.id} failed to receive data: {e}")
             return None
 
+
+
     def GetPosition(self):
-        return self.latitude, self.longitude, self.height
+        return self.position
+
+
 
     def SyncClock(self, received_time):
         # Simple clock sync: Adjust own clock to received time
         self.clock = float(received_time)
         print(f"Drone {self.id} synchronized clock to {self.clock}")
+
+
 
     def GetIP(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -119,6 +128,8 @@ class Drone:
             s.close()
         return IP
 
+
+
     def Listen(self):
         while True:
             message, addr = self.Receive()
@@ -128,9 +139,12 @@ class Drone:
                     _, received_time = message.split()
                     self.SyncClock(received_time)
 
+
+
     def StartListening(self):
         thread = threading.Thread(target=self.Listen)
         thread.start()
+
 
 
     def Demonstrate(self, demonstrator_ip, demonstrator_port):

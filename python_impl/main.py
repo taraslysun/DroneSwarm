@@ -1,5 +1,6 @@
 import json
 import time
+import argparse
 from src.drone import Drone
 from src.clusterhead import ClusterHead
 from src.masterdrone import MasterDrone
@@ -12,22 +13,25 @@ from src.commondrone import CommonDrone
 #     message = "Hello, World!"
 #     master.Broadcast(message+'1', '192.168.1.90')
     # master.Broadcast(message+'2', '<broadcast>')
-ip = '192.168.1.53'
+demo_ip = '192.168.1.51'
+cluster_head_ip = '192.168.1.51'
 
-def main():
-    common = CommonDrone(2, port=12345, use_tcp=False, cluster_head=(1, ip,12345), step_distance=0.1)
-    # common.Operation()
-    while True:
-        common.Action()
-        time.sleep(0.01)      
-        position = common.GetPosition()
-        print(position)
-        # print(list(position))
-        common.Broadcast(json.dumps({'id':common.id,
-                                     'latitude': position[0], 
-                                     'longitude':position[1],
-                                     'altitude':position[2]}), common.cluster_head_ip, 50000+common.id)
+def main(id):
+    common = CommonDrone(id, 
+                         port=30000+id, 
+                         use_tcp=False, 
+                         cluster_head=(1, cluster_head_ip, 20000), 
+                         step_distance=0.1, 
+                         position=(10,0,0), 
+                         target_coordinates=(20,22,21)
+                         )
+    common.Operation(1000, demo_ip=demo_ip)
+
 
 
 if __name__ == "__main__":
-    main()
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('id', type=int, help='Drone ID')
+    args = argparser.parse_args()
+
+    main(args.id)
