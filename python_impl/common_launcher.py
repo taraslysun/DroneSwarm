@@ -1,6 +1,7 @@
 from src.commondrone import CommonDrone
 import multiprocessing
 import random
+import argparse
 
 
 demo_ip = '192.168.1.51'
@@ -21,10 +22,9 @@ def start_common_drone(i, port):
     drone.Operation(demo_ip=demo_ip)
 
 
-def main(num=12):
-    num = 12
+def main(lower, upper):
     processes = []
-    for i in range(1,num+1):
+    for i in range(lower, upper):
         p = multiprocessing.Process(target=start_common_drone, args=(i, 10000+i))
         p.start()
         processes.append(p)
@@ -32,7 +32,11 @@ def main(num=12):
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('lower', type=int, help='lower bound')
+    parser.add_argument('upper', type=int, help='upper bound')
+    args = parser.parse_args()
+    main(args.lower, args.upper)
 
 
 
