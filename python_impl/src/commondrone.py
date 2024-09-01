@@ -5,10 +5,19 @@ from src.drone import Drone
 
 class CommonDrone(Drone):
 
-    def __init__(self, id, cluster_head_ip, cluster_id):
+    def __init__(self, 
+                 id,
+                 port=12345, 
+                 use_tcp=False, 
+                 position=(0, 0, 0), 
+                 target_coordinates=(0,0,0), 
+                 step_distance=1.0,
+                 cluster_head_ip=None, 
+                 cluster_id=None
+                 ):
         self.cluster_head_ip = cluster_head_ip
         self.cluster_id = cluster_id
-        super().__init__(id)
+        super().__init__(id,port,use_tcp,position,target_coordinates,step_distance)
 
     def Action(self):
         '''
@@ -35,15 +44,14 @@ class CommonDrone(Drone):
             print(f"Failed {self.id} receiver:{addr}: {e}")
             return False
 
-    def Receive(self):
-        print("CommonDrone Receive")
-        pass
 
     def ParseCommand(self, message):
         message = json.loads(message)
         if message['command'] == 'MOVE':
             self.moving = True
-            self.target_coordinates = np.array([message['latitude'], message['longitude'], message['altitude']])
+            coordinates = message['coordinates']
+            self.target_coordinates = np.array([coordinates['latitude'], coordinates['longitude'], coordinates['altitude']]).astype(float)
+
 
     def MoveToTarget(self):
         '''

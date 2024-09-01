@@ -4,7 +4,14 @@ import threading
 import numpy as np
 
 class Drone:
-    def __init__(self, id, port=12345, use_tcp=False, position=(0, 0, 0), target_coordinates=(0,0,0), step_distance=1.0):
+    def __init__(self, 
+                 id, 
+                 port=12345, 
+                 use_tcp=False, 
+                 position=(0, 0, 0), 
+                 target_coordinates=(0,0,0), 
+                 step_distance=1.0
+                 ):
         self.id = id
         self.clock = time.time()
         self.camera = None
@@ -12,8 +19,8 @@ class Drone:
         self.is_tcp = use_tcp
         self.ip_addr = self.GetIP()
 
-        self.position = np.array(position)
-        self.target_coordinates = np.array(target_coordinates)
+        self.position = np.array(position).astype(float)
+        self.target_coordinates = np.array(target_coordinates).astype(float)
         self.step_distance = step_distance
         self.moving = False
 
@@ -25,7 +32,7 @@ class Drone:
             self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
         self.socket.bind(("", self.port)) 
-        print(f'{'TCP' if use_tcp else 'UDP'} {self.__class__.__name__} id:{self.id} ip:{self.ip_addr}/{self.port}')
+        print(f"{'TCP' if use_tcp else 'UDP'} {self.__class__.__name__} id:{self.id} ip:{self.ip_addr}/{self.port}")
 
 
     def Operation(self):

@@ -13,8 +13,8 @@ from src.commondrone import CommonDrone
 
 
 def main():
-    master = CommonDrone(0, port=12345, use_tcp=False, )
-    master.Operation()
+    common = CommonDrone(0, port=12345, use_tcp=False, cluster_head_ip='192.168.1.53', cluster_id=1)
+    common.Operation()
 
 
 
