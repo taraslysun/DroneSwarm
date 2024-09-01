@@ -3,6 +3,7 @@ import time
 import threading
 import numpy as np
 import json
+from multiprocessing import Process, Manager
 
 
 class Drone:
@@ -26,16 +27,50 @@ class Drone:
         self.step_distance = step_distance
         self.moving = False if np.all(self.position == self.target_coordinates) else True
 
-
         if use_tcp:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         else:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-
         self.socket.bind((self.ip_addr, self.port)) 
         print(f"{'TCP' if use_tcp else 'UDP'} {self.__class__.__name__} id:{self.id} ip:{self.ip_addr}/{self.port}")
+
+        manager = Manager()
+        self.shared_target_coordinates = manager.list(self.target_coordinates)
+        self.shared_moving = manager.Value('b', self.moving)
+
+        self.listener_process = Process(target=self.ListenForCommands)
+        self.listener_process.start()
+
+
+    def ListenForCommands(self):
+        """
+        Separate process that listens for incoming commands and updates the shared state.
+        """
+        while True:
+            message, addr = self.Receive()
+            if message:
+                self.ParseCommand(message)
+
+
+
+    def MoveToTarget(self):
+        '''
+        Move the drone in the direction of the target coordinates by a fixed distance
+        '''
+        target_coordinates = np.array(self.shared_target_coordinates)
+        direction = target_coordinates - self.position
+        distance_to_target = np.linalg.norm(direction)
+
+        if distance_to_target <= self.step_distance:
+            self.position = target_coordinates
+            self.shared_moving.value = False
+            print(f"Drone {self.id} has reached the target at {self.position}.")
+        else:
+            direction_normalized = direction / distance_to_target
+            self.position += direction_normalized * self.step_distance
+            # print(f"Drone {self.id} position: {self.position}  target: {target_coordinates}")
 
 
     def Operation(self):
@@ -44,6 +79,7 @@ class Drone:
         """
         print(f"Base operation {self.id}, REDEFINE!")
         pass
+
 
     def Action(self):
         """
@@ -99,7 +135,7 @@ class Drone:
                 message = data.decode()
                 return message, addr
         except Exception as e:
-            print(f"Drone {self.id} failed to receive data: {e}")
+            print(f"{self.__class__.__name__} {self.id} failed to receive data: {e}")
             return None
 
 

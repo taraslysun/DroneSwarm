@@ -1,4 +1,5 @@
 from src.commondrone import CommonDrone
+from src.clusterhead import ClusterHead
 import multiprocessing
 import random
 import argparse
@@ -16,10 +17,13 @@ def start_common_drone(i, port):
                         port=port,
                         use_tcp=False, 
                         cluster_head=(0, '192.168.1.51', 20000),
-                        step_distance=0.2, 
+                        step_distance=0.4, 
                         target_coordinates=target, 
                         position=start_position)
     drone.Operation(demo_ip=demo_ip)
+
+
+
 
 
 def main(lower, upper):
@@ -28,6 +32,7 @@ def main(lower, upper):
         p = multiprocessing.Process(target=start_common_drone, args=(i, 10000+i))
         p.start()
         processes.append(p)
+
 
 
 
@@ -40,13 +45,3 @@ if __name__ == "__main__":
 
 
 
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('lat', type=float, help='latitude')
-    # parser.add_argument('lon', type=float, help='longitude')
-    # parser.add_argument('alt', type=float, help='altitude')
-    # parser.add_argument('lat1', type=float, help='latitude')
-    # parser.add_argument('lon1', type=float, help='longitude')
-    # parser.add_argument('alt1', type=float, help='altitude')
-
-    # args = parser.parse_args()
-    # main([args.lat, args.lon, args.alt], [args.lat1, args.lon1, args.alt1])

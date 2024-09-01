@@ -1,6 +1,6 @@
 from src.drone import Drone
 class MasterDrone(Drone):
-    def __init__(self, id, port=12345, use_tcp=False):
+    def __init__(self, id, port=30000, use_tcp=False):
         super().__init__(id, port, use_tcp)
         self.cluster_heads = []  # List of ClusterHeads in the swarm
 

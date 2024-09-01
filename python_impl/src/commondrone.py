@@ -10,7 +10,7 @@ class CommonDrone(Drone):
     def __init__(self, 
                  id,
                  cluster_head,
-                 port=12345, 
+                 port=10000, 
                  use_tcp=False, 
                  position=(0, 0, 0), 
                  target_coordinates=(0,0,0), 
@@ -21,22 +21,14 @@ class CommonDrone(Drone):
         self.cluster_head_port = cluster_head[2]
         super().__init__(id, port, use_tcp, position, target_coordinates, step_distance)
 
-        manager = Manager()
-        self.shared_target_coordinates = manager.list(self.target_coordinates)
-        self.shared_moving = manager.Value('b', self.moving)  # 'b' indicates a boolean value
+        # manager = Manager()
+        # self.shared_target_coordinates = manager.list(self.target_coordinates)
+        # self.shared_moving = manager.Value('b', self.moving)  # 'b' indicates a boolean value
 
-        # Start the listener process
-        self.listener_process = Process(target=self.ListenForCommands)
-        self.listener_process.start()
+        # # Start the listener process
+        # self.listener_process = Process(target=self.ListenForCommands)
+        # self.listener_process.start()
 
-    def ListenForCommands(self):
-        """
-        Separate process that listens for incoming commands and updates the shared state.
-        """
-        while True:
-            message, addr = self.Receive()
-            if message:
-                self.ParseCommand(message)
 
     def ParseCommand(self, message):
         message = json.loads(message)
@@ -56,22 +48,6 @@ class CommonDrone(Drone):
         else:
             self.MoveToTarget()
 
-    def MoveToTarget(self):
-        '''
-        Move the drone in the direction of the target coordinates by a fixed distance
-        '''
-        target_coordinates = np.array(self.shared_target_coordinates)
-        direction = target_coordinates - self.position
-        distance_to_target = np.linalg.norm(direction)
-
-        if distance_to_target <= self.step_distance:
-            self.position = target_coordinates
-            self.shared_moving.value = False
-            print(f"Drone {self.id} has reached the target at {self.position}.")
-        else:
-            direction_normalized = direction / distance_to_target
-            self.position += direction_normalized * self.step_distance
-            print(f"Drone {self.id} position: {self.position}  target: {target_coordinates}")
 
     def Operation(self, num=None, demo_ip=None):
         demo_ip = demo_ip if demo_ip else self.cluster_head_ip

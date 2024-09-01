@@ -8,41 +8,43 @@ from src.commondrone import CommonDrone
 import multiprocessing
 
 
+ip1 = '192.168.1.51'
+ip2 = '192.168.1.53'
+
 def start_ch_drone(i, port):
     start_position = (i*10, 0, 0)
-    target = (i*10, 10+i*10, 0)
-    drone = ClusterHead(i, 
+    target = (i*200, 10+i*10, 50)
+    drone = ClusterHead(i + 20000, 
                         port=port,
                         use_tcp=False,
-                        step_distance=0.4,
+                        step_distance=0.7,
                         target_coordinates=target, 
-                        position=start_position)
+                        position=start_position,
+                        cluster_radius=30)
+    drones = []
+    if i < 2:
+        ip = ip1
+    else:
+        ip = ip2
+    for k in range(6*i+1, 6*i+7):
+        drones.append((10000+k, ip, 10000+k))
+
+    drone.common_drones = drones
+    print(drone.common_drones)
+    
     drone.Operation()
 
-
-def main():
-    ip = '192.168.1.51'
-    num = 6
+def main(lower, upper):
     processes = []
-    # for i in range(num):
-    #     p = multiprocessing.Process(target=start_ch_drone, args=(i, 30000+i))
-    #     p.start()
-    #     processes.append(p)
-
+    for i in range(lower, upper):
+        p = multiprocessing.Process(target=start_ch_drone, args=(i, 20000+i))
+        p.start()
+        processes.append(p)
 
 
 if __name__ == "__main__":
-    main()
-
-
-
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('lat', type=float, help='latitude')
-    # parser.add_argument('lon', type=float, help='longitude')
-    # parser.add_argument('alt', type=float, help='altitude')
-    # parser.add_argument('lat1', type=float, help='latitude')
-    # parser.add_argument('lon1', type=float, help='longitude')
-    # parser.add_argument('alt1', type=float, help='altitude')
-
-    # args = parser.parse_args()
-    # main([args.lat, args.lon, args.alt], [args.lat1, args.lon1, args.alt1])
+    parser = argparse.ArgumentParser()
+    parser.add_argument('lower', type=int, help='lower bound')
+    parser.add_argument('upper', type=int, help='upper bound')
+    args = parser.parse_args()
+    main(args.lower, args.upper)
