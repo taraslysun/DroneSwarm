@@ -12,10 +12,10 @@ from src.commondrone import CommonDrone
 #     message = "Hello, World!"
 #     master.Broadcast(message+'1', '192.168.1.90')
     # master.Broadcast(message+'2', '<broadcast>')
-
+ip = '192.168.1.53'
 
 def main():
-    common = CommonDrone(0, port=12345, use_tcp=False, cluster_head_ip='192.168.1.51', cluster_id=1, step_distance=0.1)
+    common = CommonDrone(2, port=12345, use_tcp=False, cluster_head=(1, ip,12345), step_distance=0.1)
     # common.Operation()
     while True:
         common.Action()
@@ -26,7 +26,7 @@ def main():
         common.Broadcast(json.dumps({'id':common.id,
                                      'latitude': position[0], 
                                      'longitude':position[1],
-                                     'altitude':position[2]}), common.cluster_head_ip, 50000)
+                                     'altitude':position[2]}), common.cluster_head_ip, 50000+common.id)
 
 
 if __name__ == "__main__":

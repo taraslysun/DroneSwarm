@@ -2,22 +2,24 @@ import socket
 import json
 import numpy as np
 from src.drone import Drone
+import time
 
 class CommonDrone(Drone):
 
     def __init__(self, 
                  id,
+                 cluster_head,
                  port=12345, 
                  use_tcp=False, 
                  position=(0, 0, 0), 
                  target_coordinates=(0,0,0), 
                  step_distance=1.0,
-                 cluster_head_ip=None, 
-                 cluster_id=None
                  ):
-        self.cluster_head_ip = cluster_head_ip
-        self.cluster_id = cluster_id
+        self.cluster_head_id = cluster_head[0]
+        self.cluster_head_ip = cluster_head[1]
+        self.cluster_head_port = cluster_head[2]
         super().__init__(id,port,use_tcp,position,target_coordinates,step_distance)
+
 
     def Action(self):
         '''
@@ -30,13 +32,16 @@ class CommonDrone(Drone):
             self.MoveToTarget()
 
 
-    def ParseCommand(self, message):
-        message = json.loads(message)
-        if message['command'] == 'MOVE':
-            self.moving = True
-            coordinates = message['coordinates']
-            self.target_coordinates = np.array([coordinates['latitude'], coordinates['longitude'], coordinates['altitude']]).astype(float)
+    def Operation(self, num=None):
 
+        if num is None:
+            while True:
+                self.Action()
+                self.Demonstrate(self.cluster_head_ip, 50000+self.id)
+        else:
+            for i in range(num):
+                self.Action()
+                self.Demonstrate(self.cluster_head_ip, 50000+self.id)
 
     def MoveToTarget(self):
         '''
