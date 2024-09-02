@@ -1,7 +1,7 @@
-from src.masterdrone import MasterDrone
+from src.drone import Drone
 import json
 
-master = MasterDrone(0, port=30000, use_tcp=False)
+master = Drone(0, port=30000, use_tcp=False)
 
 demo_ip_1 = '192.168.1.51'
 demo_ip_2 = '192.168.1.53'

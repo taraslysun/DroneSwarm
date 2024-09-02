@@ -1,7 +1,7 @@
 import random
 import argparse
 import json
-from src.masterdrone import MasterDrone
+from src.drone import Drone
 
 # target = (random.randint(0, 300), random.randint(0, 300), random.randint(10, 50))
 
@@ -12,7 +12,7 @@ def add_random_target():
 ips = ['192.168.1.51', '192.168.1.53']
 
 def main(lower, upper):
-    master = MasterDrone(0, port=12345, use_tcp=False)
+    master = Drone(0, port=12345, use_tcp=False)
     for i in range(lower, upper):
         ip = ips[0] if i <= 12 else ips[1]
         target = add_random_target()

@@ -10,17 +10,14 @@ def main():
     for i in range(4):
         cluster_heads.append((20000+i, demo_ip, 20000+i))
 
-    master = MasterDrone(0,
+    master = MasterDrone(30000,
                         port=30000,
                         use_tcp=False,
                         position=(0, 0, 0),
+                        target_coordinates=(0, 0, 0),
                         step_distance=1,
                         cluster_heads=cluster_heads)
-    # master.Operation()
-    # for i in range(4):
-    #     master.Broadcast(json.dumps({'command':'CLUSTER'}), demo_ip, 20000+i)
-    for id, ip, port in cluster_heads:
-        master.Broadcast(json.dumps({'command':'CLUSTER'}), ip, port)
+    master.Operation()
 
 if __name__ == "__main__":
     main()

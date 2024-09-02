@@ -71,13 +71,16 @@ class CommonDrone(Drone):
         Move the drone in the direction of the target coordinates by a fixed distance
         '''
         target_coordinates = np.array(self.shared_target_coordinates)
-        direction = target_coordinates - self.position
+        direction = target_coordinates - np.array(self.shared_position)
         distance_to_target = np.linalg.norm(direction)
 
         if distance_to_target <= self.step_distance:
-            self.position = target_coordinates
+            self.shared_position[:] = target_coordinates  # Update shared position
             self.shared_moving.value = False
-            print(f"Drone {self.id} has reached the target at {self.position}.")
+            print(f"Drone {self.id} has reached the target at {self.shared_position[:]}.")
+
         else:
             direction_normalized = direction / distance_to_target
-            self.position += direction_normalized * self.step_distance
+            new_position = np.array(self.shared_position) + direction_normalized * self.step_distance
+            self.shared_position[:] = new_position  # Update shared position
+

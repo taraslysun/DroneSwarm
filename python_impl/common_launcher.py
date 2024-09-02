@@ -10,15 +10,15 @@ demo_ip = '192.168.1.51'
 def start_common_drone(i, port):
     # start_position = (i*10, 0, 0)
     # target = (i*10, 10+i*10, 0)
-    start_position = (random.randint(0, 300), random.randint(0, 300), random.randint(10, 50))
-    target = (random.randint(0, 300), random.randint(0, 300), random.randint(10, 50))
+    start_position = (random.randint(0, 300), random.randint(0, 300), 10)
+    target = (random.randint(0, 300), random.randint(0, 300), 10)
     print(start_position, target, i)
     drone = CommonDrone(i+10000, 
                         port=port,
                         use_tcp=False, 
                         cluster_head=(0, '192.168.1.51', 20000),
                         step_distance=0.7, 
-                        target_coordinates=target, 
+                        target_coordinates=start_position, 
                         position=start_position)
     drone.Operation(demo_ip=demo_ip)
 

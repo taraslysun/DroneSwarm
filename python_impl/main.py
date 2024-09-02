@@ -16,22 +16,21 @@ from src.commondrone import CommonDrone
 demo_ip = '192.168.1.51'
 cluster_head_ip = '192.168.1.51'
 
-def main(id):
-    common = CommonDrone(id, 
-                         port=30000+id, 
-                         use_tcp=False, 
-                         cluster_head=(1, cluster_head_ip, 20000), 
-                         step_distance=0.1, 
-                         position=(10,0,0), 
-                         target_coordinates=(20,22,21)
-                         )
-    common.Operation(1000, demo_ip=demo_ip)
+def main(command, ip, port):
+    direction = 1
+    master = Drone(0, port=30003, use_tcp=False)
 
+
+    if command == 'MOVEALL':
+        master.Broadcast(json.dumps({'command':'MOVEALL', 'coordinates':{'lat':200, 'lon':direction*100, 'alt':50}}), ip, port)
 
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('id', type=int, help='Drone ID')
+    argparser.add_argument('command', type=str, help='command')
+    argparser.add_argument('ip', type=str, help='ip')
+    argparser.add_argument('port', type=int, help='port')
     args = argparser.parse_args()
 
-    main(args.id)
+
+    main(args.command, args.ip, args.port)
