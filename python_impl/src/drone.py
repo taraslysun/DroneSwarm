@@ -13,11 +13,12 @@ class Drone:
                  use_tcp=False, 
                  position=(0, 0, 0), 
                  target_coordinates=(0,0,0), 
-                 step_distance=1.0
+                 step_distance=1.0,
+                 camera=None
                  ):
         self.id = id
         self.clock = time.time()
-        self.camera = None
+        self.camera = camera
         self.port = port
         self.is_tcp = use_tcp
         self.ip_addr = self.GetIP()
@@ -38,22 +39,6 @@ class Drone:
 
 
 
-    def MoveToTarget(self):
-        '''
-        Move the drone in the direction of the target coordinates by a fixed distance
-        '''
-        target_coordinates = np.array(self.shared_target_coordinates)
-        direction = target_coordinates - self.position
-        distance_to_target = np.linalg.norm(direction)
-
-        if distance_to_target <= self.step_distance:
-            self.position = target_coordinates
-            self.shared_moving.value = False
-            print(f"Drone {self.id} has reached the target at {self.position}.")
-        else:
-            direction_normalized = direction / distance_to_target
-            self.position += direction_normalized * self.step_distance
-            # print(f"Drone {self.id} position: {self.position}  target: {target_coordinates}")
 
 
     def Operation(self):
@@ -98,8 +83,6 @@ class Drone:
             print(f"Drone {self.id} failed to send message to {addr}: {e}")
             return False
 
-
-
     def Receive(self):
         try:
             if self.is_tcp:
@@ -121,18 +104,41 @@ class Drone:
             print(f"{self.__class__.__name__} {self.id} failed to receive data: {e}")
             return None
 
+# ----------------------------------------------------------- MOVEMENT -----------------------------------------------------------
 
+    def MoveToTarget(self):
+        '''
+        Move the drone in the direction of the target coordinates by a fixed distance
+        '''
+        target_coordinates = np.array(self.shared_target_coordinates)
+        direction = target_coordinates - self.position
+        distance_to_target = np.linalg.norm(direction)
 
-    def GetPosition(self):
-        return self.position
+        if distance_to_target <= self.step_distance:
+            self.position = target_coordinates
+            self.shared_moving.value = False
+            print(f"Drone {self.id} has reached the target at {self.position}.")
+        else:
+            direction_normalized = direction / distance_to_target
+            self.position += direction_normalized * self.step_distance
+            # print(f"Drone {self.id} position: {self.position}  target: {target_coordinates}")
 
+# ----------------------------------------------------------- SYNCHRONIZATION -----------------------------------------------------------
+    def ListenForCommands(self):
+        """
+        Separate process that listens for incoming commands and updates the shared state.
+        """
+        while True:
+            message, addr = self.Receive()
+            # print('message:', message)
+            if message:
+                self.ParseCommand(message)
 
 
     def SyncClock(self, received_time):
         # Simple clock sync: Adjust own clock to received time
         self.clock = float(received_time)
         print(f"Drone {self.id} synchronized clock to {self.clock}")
-
 
 
     def GetIP(self):
@@ -147,24 +153,11 @@ class Drone:
             s.close()
         return IP
 
+    def GetPosition(self):
+        return self.position
 
 
-    def Listen(self):
-        while True:
-            message, addr = self.Receive()
-            if message:
-                print(f"Listen {self.id} message: {message} ip:{addr}")
-                if message.startswith("SYNC"):
-                    _, received_time = message.split()
-                    self.SyncClock(received_time)
-
-
-
-    def StartListening(self):
-        thread = threading.Thread(target=self.Listen)
-        thread.start()
-
-
+# ----------------------------------------------------------- DEMONSTRATION -----------------------------------------------------------
 
     def Demonstrate(self, demonstrator_ip, demonstrator_port):
         time.sleep(0.01)

@@ -19,13 +19,13 @@ def start_ch_drone(i, port):
         ip = ip1
     else:
         ip = ip2
-    for k in range(6*i+1, 6*i+7):
+    for k in range(6*i+1, 6*i+6+1):
         drones.append((10000+k, ip, 10000+k))
 
     drone = ClusterHead(i + 20000, 
                         port=port,
                         use_tcp=False,
-                        step_distance=0.7,
+                        step_distance=1,
                         target_coordinates=target, 
                         position=start_position,
                         common_drones=drones,
