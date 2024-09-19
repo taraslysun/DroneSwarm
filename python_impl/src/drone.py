@@ -26,7 +26,8 @@ class Drone:
         self.position = np.array(position).astype(float)
         self.target_coordinates = np.array(target_coordinates).astype(float)
         self.step_distance = step_distance
-        self.moving = False if np.all(self.position == self.target_coordinates) else True
+        # self.moving = False if np.all(self.position == self.target_coordinates) else True
+        self.moving = not np.all(self.position == self.target_coordinates)
 
         if use_tcp:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

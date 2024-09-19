@@ -1,9 +1,13 @@
 import json
 from src.masterdrone import MasterDrone
+import argparse
 
 
-demo_ip = '192.168.1.51'
+parser = argparse.ArgumentParser()
+parser.add_argument('ip_1', type=str)
 
+args = parser.parse_args()
+demo_ip = args.ip_1
 
 def main():
     cluster_heads = []
