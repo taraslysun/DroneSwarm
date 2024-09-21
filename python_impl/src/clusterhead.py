@@ -54,7 +54,7 @@ class ClusterHead(Drone):
             time.sleep(0.1)  # Small sleep to reduce CPU usage
         else:
             self.MoveToTarget()
-            self.MoveCommonDrones()
+            # self.MoveCommonDrones(self.target_coordinates)
             # print('cluster head position:', self.shared_position[:])
             self.position = np.array(self.shared_position).astype(float)
 
@@ -67,6 +67,7 @@ class ClusterHead(Drone):
         target_coordinates = np.array(self.shared_target_coordinates)
         direction = target_coordinates - np.array(self.shared_position)
         distance_to_target = np.linalg.norm(direction)
+        self.MoveCommonDrones(target_coordinates)
 
         if distance_to_target <= self.step_distance:
             self.shared_position[:] = target_coordinates  # Update shared position
@@ -79,18 +80,16 @@ class ClusterHead(Drone):
             self.shared_position[:] = new_position  # Update shared position
 
 
-    def MoveCommonDrones(self):
-        direction = [0, 0, 0]
+    def MoveCommonDrones(self, target=None):
         for cd in self.common_drones:
-            rand_coords = []
-            for i in range(3):
-                rand_coords.append(self.shared_position[i] + random.uniform(-self.cluster_radius, self.cluster_radius) + direction[i])
-
             self.Broadcast(json.dumps({'command': 'MOVE', 
-                                        'coordinates': {'latitude': rand_coords[0], 
-                                                        'longitude': rand_coords[1], 
-                                                        'altitude': rand_coords[2]}}),
-                            cd[1], cd[2])
+                                        'coordinates': {'latitude': float(target[0]),
+                                                        'longitude': float(target[0]),
+                                                        'altitude': float(target[0])},
+                                        'ch_coordinates': {'latitude': self.shared_position[0],
+                                                           'longitude': self.shared_position[1],
+                                                           'altitude': self.shared_position[2]}
+                                        }), cd[1], cd[2])
         self.coordinates_sent = True
 
 # ----------------------------------------------------------- SYNCHRONIZATION -----------------------------------------------------------
@@ -116,14 +115,14 @@ class ClusterHead(Drone):
             for i in range(3):
                 self.shared_target_coordinates[i] = coordinates[i]
             self.coordinates_sent = False
-            self.MoveCommonDrones()
+            self.MoveCommonDrones(coordinates)
         if command == 'SYNC':
             self.clock = max(self.clock, message['clock'])
             self.BroadcastSync()
         if command == 'CLUSTER':
             print('cluster command received')
             print(self.id, self.common_drones, self.shared_position[:])
-            self.MoveCommonDrones()
+            self.MoveCommonDrones(self.shared_position[:])
 
     def BroadcastSync(self):
         sync_message = json.dumps({'command': 'SYNC', 'clock': self.clock})

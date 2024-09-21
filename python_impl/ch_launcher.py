@@ -1,10 +1,6 @@
 import json
 import argparse
-from src.drone import Drone
 from src.clusterhead import ClusterHead
-from src.masterdrone import MasterDrone
-from src.intermediatedrone import IntermediateDrone
-from src.commondrone import CommonDrone
 import multiprocessing
 
 

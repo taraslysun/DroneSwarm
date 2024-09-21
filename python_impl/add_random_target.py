@@ -9,7 +9,7 @@ def add_random_target():
     target = (random.randint(0, 300), random.randint(0, 300), random.randint(10, 50))
     return target
 
-ips = ['192.168.1.51', '192.168.1.53']
+ips = ['192.168.1.53', '192.168.1.55']
 
 def main(lower, upper):
     master = Drone(0, port=12345, use_tcp=False)
