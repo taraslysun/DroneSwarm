@@ -2,12 +2,13 @@ import cv2
 
 cap = cv2.VideoCapture(0)
 
-host_ip = "192.168.1.53"
+host_ip = "192.168.1.55"
+port = "12345"
 
-gst_str = f"appsrc ! videoconvert ! video/x-raw,format=I420 ! jpegenc ! rtpjpegpay ! udpsink host={host_ip} port=5001"
+gst_str = f"appsrc ! videoconvert ! video/x-raw,format=I420 ! jpegenc ! rtpjpegpay ! udpsink host={host_ip} port={port}"
 
 # receive with following command
-# gst-launch-1.0 udpsrc port=5000 ! application/x-rtp,encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! autovideosink
+# gst-launch-1.0 udpsrc port={port} ! application/x-rtp,encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! autovideosink
 
 out = cv2.VideoWriter(gst_str, 0, 30, (640, 480))
 
