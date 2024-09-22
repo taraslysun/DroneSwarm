@@ -1,9 +1,12 @@
 from multiprocessing import Process, Manager
 import json
 import random
+import cv2
+import socket
 import time
 import numpy as np
 from src.drone import Drone
+from model_training.YOLOvX import YOLOvX
    
 class ClusterHead(Drone):
     def __init__(self, 
@@ -16,12 +19,16 @@ class ClusterHead(Drone):
                  common_drones=[],
                  cluster_radius=100,
                  camera=None,
+                 image_port=None,
                  ):
         super().__init__(id, port, use_tcp, position, target_coordinates, step_distance)
         self.cluster_radius = cluster_radius
         self.common_drones = common_drones
         self.common_moving = False
         self.coordinates_sent = False  # Flag to track if coordinates have been sent
+        self.camera = camera  # Assuming the camera object is passed here
+        self.model = YOLOvX('python_impl/model_training/yolov8n.onnx')
+        self.image_port = image_port if image_port else self.id - 20000 + 7000
         print('num of common drones:', len(self.common_drones))
 
         manager = Manager()
@@ -31,6 +38,9 @@ class ClusterHead(Drone):
 
         self.listener_process = Process(target=self.ListenForCommands)
         self.listener_process.start()
+
+        self.image_listener_process = Process(target=self.ImageListener)
+        self.image_listener_process.start()
 
 # ----------------------------------------------------------- MAIN LOOPS -----------------------------------------------------------
 
@@ -57,6 +67,44 @@ class ClusterHead(Drone):
             # self.MoveCommonDrones(self.target_coordinates)
             # print('cluster head position:', self.shared_position[:])
             self.position = np.array(self.shared_position).astype(float)
+
+# ----------------------------------------------------------- IMAGE LISTENER -----------------------------------------------------------
+
+    def ImageListener(self):
+        """
+        Listens for incoming image data on a specified port, processes the image using the YOLOv8 model,
+        and makes decisions based on detected objects (e.g., trees).
+        """
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_socket.bind(('0.0.0.0', self.image_port))
+        server_socket.listen(1)
+        print(f"Listening for images on port {self.image_port}...")
+
+        while True:
+            client_socket, addr = server_socket.accept()
+            print(f"Connection from {addr} established.")
+
+            # Receive image data
+            data = b''
+            while True:
+                packet = client_socket.recv(4096)
+                if not packet:
+                    break
+                data += packet
+
+            # Decode the image
+            nparr = np.frombuffer(data, np.uint8)
+            image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+            # Process the image with YOLOv8 model
+            detections = self.model.predict(image)
+
+            # Analyze detections (e.g., trees) and make a decision
+            for detection in detections:
+                if detection['class_name'] == 'tree':
+                    self.HandleTreeDetection(detection)
+            
+            client_socket.close()
 
 # ----------------------------------------------------------- MOVEMENT -----------------------------------------------------------
 
