@@ -8,7 +8,7 @@ import numpy as np
 from src.drone import Drone
 from model_training.YOLOvX import YOLOvX
 
-PRINT_PICTURE_OF_CAMERA = False
+PRINT_PICTURE_OF_CAMERA = True
 i = 0
 
 class ClusterHead(Drone):
@@ -31,7 +31,7 @@ class ClusterHead(Drone):
         self.coordinates_sent = False  # Flag to track if coordinates have been sent
         self.camera = camera  # Assuming the camera object is passed here
         self.model = YOLOvX('model_training/yolov8n.onnx')
-        self.image_port = image_port if image_port else self.id - 20000 + 8000
+        self.image_port = image_port if image_port else self.id - 20000 + 7000
         self.detections = []
         self.tree_distance_threshold = 100.0  # Adjust this based on what distance is considered 'close'
         
@@ -131,8 +131,8 @@ class ClusterHead(Drone):
             tree_middle = (left_top_x + width / 2, left_top_y + height / 2)
 
             picture_middle = (self.shared_image_shape[1] / 2, self.shared_image_shape[0] / 2)
-            if left_top_x < picture_middle[0] < (left_top_x + width) and left_top_y < picture_middle[1] < (left_top_y + height):
-            # if self.IsTreeInPath(detection['box'], picture_middle) and width > self.shared_image_shape[1] / 4:
+            # if left_top_x < picture_middle[0] < (left_top_x + width) and left_top_y < picture_middle[1] < (left_top_y + height):
+            if self.IsTreeInPath(detection['box'], picture_middle) and width > self.shared_image_shape[1] / 4:
                 if width > self.shared_image_shape[1] / 5 or height > self.shared_image_shape[0] / 5:
                     self.AvoidTree(tree_middle, picture_middle)
             else:
@@ -150,32 +150,21 @@ class ClusterHead(Drone):
         '''
         Determine which direction the drone should steer to avoid the tree.
         '''
-        msg = ''
-        print('Avoiding tree')
         if tree_middle[0] < picture_middle[0]:
-            msg += 'left '
-        if tree_middle[1] < picture_middle[1]:
-            msg += 'up '
-        if tree_middle[0] > picture_middle[0]:
-            msg += 'right '
-        if tree_middle[1] > picture_middle[1]:
-            msg += 'down '
-        self.AdjustDirection(msg)
+            self.AdjustDirection('right')
+        else:
+            self.AdjustDirection('left')
 
 
     def AdjustDirection(self, direction):
         '''
-        Adjust the drone's target coordinates to steer left or right to avoid the tree.
+        Adjust the drone's target coordinates to steer right or left to avoid the tree.
         '''
         print(f"Adjusting direction to the {direction}")
-        if 'left' in direction:
-            self.shared_avoiding_shift[0] = 1
-        if 'up' in direction:
-            self.shared_avoiding_shift[1] = 1
         if 'right' in direction:
+            self.shared_avoiding_shift[0] = 1
+        if 'left' in direction:
             self.shared_avoiding_shift[0] = -1
-        if 'down' in direction:
-            self.shared_avoiding_shift[1] = -1
 
 
 
@@ -210,7 +199,6 @@ class ClusterHead(Drone):
                                         'ch_coordinates': {'latitude': self.shared_position[0],
                                                            'longitude': self.shared_position[1],
                                                            'altitude': self.shared_position[2]},
-                                        'trees': self.shared_detections,
                                         }), cd[1], cd[2])
         self.coordinates_sent = True
 
