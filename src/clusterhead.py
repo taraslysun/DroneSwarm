@@ -8,7 +8,7 @@ import numpy as np
 from src.drone import Drone
 from model_training.YOLOvX import YOLOvX
 
-PRINT_PICTURE_OF_CAMERA = False
+PRINT_PICTURE_OF_CAMERA = True
 i = 0
 
 class ClusterHead(Drone):
@@ -182,7 +182,7 @@ class ClusterHead(Drone):
         target_coordinates = np.array(self.shared_target_coordinates)
         direction = target_coordinates - np.array(self.shared_position)
         distance_to_target = np.linalg.norm(direction)
-        self.MoveCommonDrones(target_coordinates)
+        self.MoveCommonDrones()
 
         if distance_to_target <= self.step_distance:
             self.shared_position[:] = target_coordinates  # Update shared position
@@ -195,18 +195,18 @@ class ClusterHead(Drone):
             self.shared_position[:] = new_position  # Update shared position
 
 
-    def MoveCommonDrones(self, target):
-        for cd in self.common_drones:
-            self.Broadcast(json.dumps({'command': 'MOVE', 
-                                        'coordinates': {'latitude': float(target[0]),
-                                                        'longitude': float(target[0]),
-                                                        'altitude': float(target[0])},
-                                        'ch_coordinates': {'latitude': self.shared_position[0],
-                                                           'longitude': self.shared_position[1],
-                                                           'altitude': self.shared_position[2]},
-                                        'detections':{'detections': str(self.shared_detections)},
-                                        }), cd[1], cd[2])
-        self.coordinates_sent = True
+    def MoveCommonDrones(self):
+        if not self.coordinates_sent:
+            for cd in self.common_drones:
+                rand_coords = []
+                for i in range(3):
+                    rand_coords.append(self.shared_target_coordinates[i] + random.uniform(-self.cluster_radius, self.cluster_radius))
+                self.Broadcast(json.dumps({'command': 'MOVE', 
+                                           'coordinates': {'latitude': rand_coords[0], 
+                                                           'longitude': rand_coords[1], 
+                                                           'altitude': rand_coords[2]}}),
+                               cd[1], cd[2])
+            self.coordinates_sent = True  # Set the flag to indicate that coordinates have been sent
 
 # ----------------------------------------------------------- SYNCHRONIZATION -----------------------------------------------------------
 
@@ -231,14 +231,14 @@ class ClusterHead(Drone):
             for i in range(3):
                 self.shared_target_coordinates[i] = coordinates[i]
             self.coordinates_sent = False
-            self.MoveCommonDrones(coordinates)
+            self.MoveCommonDrones()
         if command == 'SYNC':
             self.clock = max(self.clock, message['clock'])
             self.BroadcastSync()
         if command == 'CLUSTER':
             print('cluster command received')
             print(self.id, self.common_drones, self.shared_position[:])
-            self.MoveCommonDrones(self.shared_position[:])
+            self.MoveCommonDrones()
 
     def BroadcastSync(self):
         sync_message = json.dumps({'command': 'SYNC', 'clock': self.clock})

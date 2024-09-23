@@ -37,15 +37,8 @@ class CommonDrone(Drone):
             self.shared_moving.value = True
             targed_coordinates = message['coordinates']
             targed_coordinates = [float(targed_coordinates[key]) for key in targed_coordinates.keys()]
-            ch_coordinates = message['ch_coordinates']
-            ch_coordinates = [float(value) for value in ch_coordinates.values()]
-            relative_coordinates = self.position - np.array(ch_coordinates)
-            target_coordinates = np.array(targed_coordinates) + relative_coordinates
-            # if distance between drone and cluster head is greater than cluster radius, move to the edge of the cluster radius
-            distance_to_ch = np.linalg.norm(relative_coordinates)
-            if distance_to_ch > 100:
-                direction = relative_coordinates / distance_to_ch
-                target_coordinates = np.array(ch_coordinates) + direction * 100
+            target_coordinates = np.array(targed_coordinates)
+            
 
 
 
