@@ -126,13 +126,15 @@ class ClusterHead(Drone):
             # {'class_id': 0, 'class_name': 'tree', 'confidence': 0.8166216, 'box': [49.493896484375, 18.248321533203125, 589.0121, 460.66608], 'scale': 0.65}
             class_id = detection['class_id']
             left_top_x, left_top_y, width, height = detection['box']
+            scale = detection['scale']
 
             # Calculate the middle of the detected tree
             tree_middle = (left_top_x + width / 2, left_top_y + height / 2)
+            tree_middle = (tree_middle[0] * scale, tree_middle[1] * scale)
 
             picture_middle = (self.shared_image_shape[1] / 2, self.shared_image_shape[0] / 2)
-            # if left_top_x < picture_middle[0] < (left_top_x + width) and left_top_y < picture_middle[1] < (left_top_y + height):
-            if self.IsTreeInPath(detection['box'], picture_middle) and width > self.shared_image_shape[1] / 4:
+            if left_top_x < picture_middle[0] < (left_top_x + width) and left_top_y < picture_middle[1] < (left_top_y + height):
+            # if self.IsTreeInPath(detection['box'], picture_middle) and width > self.shared_image_shape[1] / 4:
                 if width > self.shared_image_shape[1] / 5 or height > self.shared_image_shape[0] / 5:
                     self.AvoidTree(tree_middle, picture_middle)
             else:
@@ -158,14 +160,17 @@ class ClusterHead(Drone):
 
     def AdjustDirection(self, direction):
         '''
-        Adjust the drone's target coordinates to steer right or left to avoid the tree.
+        Adjust the drone's target coordinates to steer left or right to avoid the tree.
         '''
         print(f"Adjusting direction to the {direction}")
-        if 'right' in direction:
-            self.shared_avoiding_shift[0] = 1
-        if 'left' in direction:
-            self.shared_avoiding_shift[0] = -1
-
+        if direction == 'left':
+            self.shared_avoiding_shift[:] = [-1, 0, 0]
+        elif direction == 'right':
+            self.shared_avoiding_shift[:] = [1, 0, 0]
+        elif direction == 'up':
+            self.shared_avoiding_shift[:] = [0, 1, 0]
+        elif direction == 'down':
+            self.shared_avoiding_shift[:] = [0, -1, 0]
 
 
 # ----------------------------------------------------------- MOVEMENT -----------------------------------------------------------
