@@ -18,7 +18,7 @@ class MasterDrone(Drone):
                  position=(0, 0, 0), 
                  target_coordinates=(0,0,0), 
                  step_distance=1.0,
-                 cluster_heads=[],      
+                 cluster_heads=[],
                  camera=None,   
                  ):
         super().__init__(id, port, use_tcp, position, target_coordinates, step_distance, camera)
@@ -37,8 +37,8 @@ class MasterDrone(Drone):
         self.listener_process.start()
 
         # sync clock process every second
-        # self.sync_clock_process = Process(target=self.SyncClocks)
-        # self.sync_clock_process.start()
+        self.sync_clock_process = Process(target=self.SyncClocks)
+        self.sync_clock_process.start()
 
 
 # ----------------------------------------------------------- MAIN LOOPS -----------------------------------------------------------

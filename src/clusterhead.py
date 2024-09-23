@@ -8,7 +8,7 @@ import numpy as np
 from src.drone import Drone
 from model_training.YOLOvX import YOLOvX
 
-PRINT_PICTURE_OF_CAMERA = True
+PRINT_PICTURE_OF_CAMERA = False
 i = 0
 
 class ClusterHead(Drone):
@@ -28,12 +28,12 @@ class ClusterHead(Drone):
         self.cluster_radius = cluster_radius
         self.common_drones = common_drones
         self.common_moving = False
-        self.coordinates_sent = False  # Flag to track if coordinates have been sent
-        self.camera = camera  # Assuming the camera object is passed here
+        self.coordinates_sent = False
+        self.camera = camera
         self.model = YOLOvX('model_training/yolov8n.onnx')
         self.image_port = image_port if image_port else self.id - 20000 + 7000
         self.detections = []
-        self.tree_distance_threshold = 100.0  # Adjust this based on what distance is considered 'close'
+        self.tree_distance_threshold = 100.0
         
         print('num of common drones:', len(self.common_drones))
 
@@ -70,7 +70,7 @@ class ClusterHead(Drone):
         One iteration of the drone's action loop
         '''
         if not self.shared_moving.value:
-            time.sleep(0.1)  # Small sleep to reduce CPU usage
+            time.sleep(0.1)
         else:
             self.MoveToTarget()
             # self.MoveCommonDrones(self.target_coordinates)
@@ -96,14 +96,13 @@ class ClusterHead(Drone):
         file_bytes = np.frombuffer(file.read(), np.uint8)
         image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
         detections = self.model.predict(image)
-        self.shared_image_shape[:] = image.shape[:2]  # Save image shape in shared memory
+        self.shared_image_shape[:] = image.shape[:2]
         if PRINT_PICTURE_OF_CAMERA:
             img = self.model.draw_boxes(image, detections)
-            # draw vertical line in the middle of the image and horizontal line in the middle of the image
             cv2.line(img, (img.shape[1] // 2, 0), (img.shape[1] // 2, img.shape[0]), (0, 255, 0), 1)
             cv2.line(img, (0, img.shape[0] // 2), (img.shape[1], img.shape[0] // 2), (0, 255, 0), 1)
             cv2.imwrite('result.jpg', img)
-        self.shared_detections[:] = detections  # Save detections in shared memory
+        self.shared_detections[:] = detections
 
         if len(detections) == 0:
             print('No objects detected')
@@ -128,7 +127,6 @@ class ClusterHead(Drone):
             left_top_x, left_top_y, width, height = detection['box']
             scale = detection['scale']
 
-            # Calculate the middle of the detected tree
             tree_middle = (left_top_x + width / 2, left_top_y + height / 2)
             tree_middle = (tree_middle[0] * scale, tree_middle[1] * scale)
 
