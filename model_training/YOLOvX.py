@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 import time
 
+
 CLASSES = ['tree']
 colors = [(0, 0, 255)]
 
@@ -125,7 +126,6 @@ if __name__ == "__main__":
     host_ip = "192.168.1.55"
     port = "12345"
 
-    gst_str = f"appsrc ! videoconvert ! video/x-raw,format=I420 ! jpegenc ! rtpjpegpay ! udpsink host={host_ip} port={port}"
     img = cv2.imread(args.img)
     print(img.shape)
     detections = model.predict(img)
@@ -133,5 +133,3 @@ if __name__ == "__main__":
     for detection in detections:
         print(detection)
     cv2.imwrite("result.jpg", result)
-
-    # model.cap_and_process(0, gst_str, sleep_time=0.2)

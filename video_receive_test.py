@@ -7,7 +7,7 @@ from model_training.YOLOvX import YOLOvX
 import time
 
 app = Flask(__name__)
-model = YOLOvX('python_impl/model_training/yolov8n.onnx')
+model = YOLOvX('model_training/yolov8n.onnx')
 
 # Folder to save images
 SAVE_FOLDER = 'received_images'
