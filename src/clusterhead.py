@@ -8,7 +8,7 @@ import numpy as np
 from src.drone import Drone
 from model_training.YOLOvX import YOLOvX
 
-PRINT_PICTURE_OF_CAMERA = True
+PRINT_PICTURE_OF_CAMERA = False
 i = 0
 
 class ClusterHead(Drone):
@@ -204,6 +204,7 @@ class ClusterHead(Drone):
                                         'ch_coordinates': {'latitude': self.shared_position[0],
                                                            'longitude': self.shared_position[1],
                                                            'altitude': self.shared_position[2]},
+                                        'detections':{'detections': str(self.shared_detections)},
                                         }), cd[1], cd[2])
         self.coordinates_sent = True
 

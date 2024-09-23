@@ -51,7 +51,7 @@ class CommonDrone(Drone):
 
             for i in range(3):
                 self.shared_target_coordinates[i] = target_coordinates[i]
-            print(f"Drone {self.id} is moving to {self.shared_target_coordinates[:]}.")
+            # print(f"Drone {self.id} is moving to {self.shared_target_coordinates[:]}.")
         elif message['command'] == 'SYNC':
             self.clock = message['clock']
 
